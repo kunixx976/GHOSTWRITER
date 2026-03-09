@@ -9,19 +9,22 @@ export const processPDF = async (file: Blob) => {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        // Pass the Blob back but initialized from the Buffer to ensure it's fresh
-        const loader = new PDFLoader(new Blob([buffer]), {
-            splitPages: false // Try to get all text at once for better context sometimes
-        });
-
-        const rawDocs = await loader.load();
-
-        console.log(`processPDF: Loaded ${rawDocs.length} pages`);
+        let rawDocs = [];
+        try {
+            const loader = new PDFLoader(new Blob([buffer]));
+            rawDocs = await loader.load();
+        } catch (loaderError) {
+            console.warn("PDFLoader failed, trying officeparser fallback:", loaderError);
+            const officeParser = await import("officeparser");
+            const text = await officeParser.parseAsync(buffer as any);
+            rawDocs = [{ pageContent: text, metadata: {} }];
+        }
 
         if (rawDocs.length === 0 || !rawDocs[0].pageContent) {
-            console.warn("processPDF: No text extracted from PDF, trying raw buffer conversion fallback");
-            // Fallback for some weird PDF structures
-            return [{ pageContent: buffer.toString('utf-8').replace(/[^\x20-\x7E\n]/g, ''), metadata: {} }];
+            console.warn("processPDF: No text extracted from PDFLoader, trying officeparser fallback");
+            const officeParser = await import("officeparser");
+            const text = await officeParser.parseAsync(buffer as any);
+            rawDocs = [{ pageContent: text, metadata: {} }];
         }
 
         const splitter = new RecursiveCharacterTextSplitter({

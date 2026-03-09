@@ -16,11 +16,8 @@ export default function Sidebar() {
     const pathname = usePathname();
 
     const logs = [
-        { agent: 'Archivist', text: 'Indexing React Hooks hierarchy...', color: 'text-emerald-400' },
-        { agent: 'Decompiler', text: 'Mapping data flow in AuthService.ts...', color: 'text-violet-400' },
-        { agent: 'Analyst', text: 'Identifying high-probability signals...', color: 'text-amber-400' },
         { agent: 'System', text: 'Neural entropy stabilization active.', color: 'text-blue-400' },
-        { agent: 'Archivist', text: 'Caching technical dependencies...', color: 'text-emerald-400' },
+        { agent: 'Archivist', text: 'Awaiting source ingestion...', color: 'text-emerald-400' },
     ];
 
     useEffect(() => {
@@ -90,7 +87,7 @@ export default function Sidebar() {
                             className="flex items-center gap-2"
                         >
                             <img src="/ghostwriter-logo.png" alt="Logo" className="w-8 h-8 object-contain" />
-                            <h1 className="text-xl font-bold tracking-tighter text-white whitespace-nowrap overflow-hidden">
+                            <h1 className="text-xl font-black tracking-tighter text-white whitespace-nowrap overflow-hidden font-display italic">
                                 GHOSTWRITER
                             </h1>
                         </motion.div>
@@ -104,11 +101,11 @@ export default function Sidebar() {
                 </button>
             </div>
 
-            <nav className="flex-1 px-4 space-y-6 overflow-y-auto custom-scrollbar pt-2">
+            <nav className="flex-1 px-4 space-y-6 overflow-y-auto custom-scrollbar pt-2 font-sans">
                 {sections.map((section) => (
                     <div key={section.title} className="space-y-1">
                         {!isCollapsed && (
-                            <div className="pt-2 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                            <div className="pt-2 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] font-display">
                                 {section.title}
                             </div>
                         )}

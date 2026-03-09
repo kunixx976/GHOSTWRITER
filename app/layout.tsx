@@ -1,16 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Outfit, Space_Grotesk, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import PageWrapper from "@/components/PageWrapper";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+});
+
+const firaCode = Fira_Code({
+  variable: "--font-fira-code",
   subsets: ["latin"],
 });
 
@@ -29,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#020202] text-white selection:bg-violet-500/30`}>
+      <body className={`${outfit.variable} ${spaceGrotesk.variable} ${firaCode.variable} antialiased bg-[#020202] text-white selection:bg-violet-500/30 font-sans`}>
         <div className="flex h-screen overflow-hidden">
           {/* Dashboard Sidebar */}
           <Sidebar />

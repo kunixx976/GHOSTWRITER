@@ -27,12 +27,7 @@ export default function CalendarPage() {
         return () => clearInterval(interval);
     }, []);
 
-    const events: { [key: number]: Event[] } = {
-        5: [{ id: '1', title: 'Distributed Systems Exam', time: '10:00 AM', type: 'exam', color: 'bg-rose-500' }],
-        12: [{ id: '3', title: 'Study Group Session', time: '3:00 PM', type: 'study', color: 'bg-violet-500' }],
-        20: [{ id: '6', title: 'Algorithm Review', time: '9:00 AM', type: 'study', color: 'bg-violet-500' }],
-        25: [{ id: '7', title: 'Final Exam', time: '9:00 AM', type: 'exam', color: 'bg-rose-500' }],
-    };
+    const events: { [key: number]: Event[] } = {};
 
     const typeLabels = {
         exam: { label: 'Exam Node', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20', icon: <Target size={12} /> },

@@ -1,17 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;800;900&family=Fira+Code:wght@400;500&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+@import "katex/dist/katex.min.css";
 @import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-outfit), "Outfit", sans-serif;
+  --font-display: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  --font-mono: var(--font-fira-code), "Fira Code", monospace;
+  
+  --color-background: #020617;
+  --color-foreground: #ffffff;
+  --color-accent: #22d3ee;
+  --color-secondary: #3b82f6;
+  --color-success: #10b981;
+}
 
 :root {
   --background: #020617;
   --foreground: #ffffff;
-  --color-accent: #22d3ee;
-  --color-secondary: #3b82f6;
-  --color-success: #10b981;
-  --color-glass: rgba(255, 255, 255, 0.01);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
-  --color-upload-start: #0891b2;
-  --color-upload-end: #3b82f6;
-  --void: #020617;
 }
 
 .text-gradient {

@@ -34,11 +34,7 @@ export default function TaskBoard() {
             icon: <Circle size={16} />,
             color: 'text-slate-400',
             bgColor: 'bg-slate-500/10',
-            tasks: [
-                { id: '1', title: 'Validate Binary Search Tree', description: 'LeetCode #98: Implement recursive validation with min/max bounds', priority: 'high', tags: ['DSA', 'Trees'], dueDate: 'Tonight' },
-                { id: '2', title: 'Binary Tree Level Order Traversal', description: 'LeetCode #102: BFS implementation using a queue', priority: 'medium', tags: ['DSA', 'Trees'], dueDate: 'Tomorrow' },
-                { id: '3', title: 'Lowest Common Ancestor', description: 'LeetCode #236: Find LCA in a general binary tree', priority: 'high', tags: ['DSA', 'Trees'], dueDate: 'In 2 days' },
-            ]
+            tasks: []
         },
         {
             id: 'inProgress',
@@ -46,10 +42,7 @@ export default function TaskBoard() {
             icon: <Loader2 size={16} className="animate-spin" />,
             color: 'text-amber-400',
             bgColor: 'bg-amber-500/10',
-            tasks: [
-                { id: '4', title: 'Invert Binary Tree', description: 'LeetCode #226: Basic recursive swap implementation', priority: 'low', tags: ['DSA', 'Trees'], dueDate: 'Ongoing' },
-                { id: '5', title: 'Maximum Depth of Binary Tree', description: 'LeetCode #104: DFS solution implementation', priority: 'low', tags: ['DSA', 'Trees'], dueDate: 'Ongoing' },
-            ]
+            tasks: []
         },
         {
             id: 'done',
@@ -57,10 +50,7 @@ export default function TaskBoard() {
             icon: <CheckCircle2 size={16} />,
             color: 'text-emerald-400',
             bgColor: 'bg-emerald-500/10',
-            tasks: [
-                { id: '6', title: 'Diameter of Binary Tree', description: 'LeetCode #543: Mastery of recursive depth calculations', priority: 'medium', tags: ['DSA', 'Trees'], dueDate: 'Completed' },
-                { id: '7', title: 'Path Sum', description: 'LeetCode #112: DFS path verification', priority: 'low', tags: ['DSA', 'Trees'], dueDate: 'Completed' },
-            ]
+            tasks: []
         }
     ]);
 

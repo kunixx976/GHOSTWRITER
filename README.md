@@ -1,39 +1,42 @@
 # 👻 Academic Ghostwriter
 
-**High-Fidelity Study Extraction Engine**
+**High-Fidelity Study Extraction Engine // v4.0.2 Protocol**
 
-Academic Ghostwriter is a premium, AI-native study assistant designed to distill lecture noise, dense PDFs, and complex presentations into exam-ready clarity. Built with the cutting-edge **Gemini 2.0 Flash** model, it provides near-instant synthesis with a high-end, cinematic user experience.
+Academic Ghostwriter is a premium, AI-native intelligence platform designed to deconstruct lecture noise, dense PDFs, and complex presentations into structural clarity. Built with a multimodal agentic core (Gemini 2.0 Flash & GPT-4o), it provides near-instant synthesis with a high-end, cinematic user experience and a brutalist-glass aesthetic.
 
 ---
 
 ## ✨ Key Features
 
-- **🚀 Multimodal Intelligence**: Process PDFs, PowerPoint slides, Word documents, and even lecture recordings (MP3/MP4) directly via Gemini's multimodal window.
-- **✍️ Cinematic Typewriter UI**: Watch as the AI "thinks" and writes your study guide in real-time with a smooth, word-by-word streaming effect.
-- **📊 Logic Flow Diagrams**: Automatically decompile technical complexity into visual Mermaid.js diagrams.
-- **🎯 Exam Predictor**: Deploy a multi-agent autonomous stack to extract high-probability patterns and calculate exam likelihood.
-- **📚 Exam-Focused Synthesis**: Automatically generates:
-  - **The Big Picture**: High-level conceptual overviews.
-  - **Key Concepts**: Critical definitions and core ideas.
-  - **Exam Signals**: Formulas, dates, and emphasis areas likely to appear on tests.
-- **🎴 Smart Flashcards**: Converts your material into interactive study cards for rapid revision.
-- **💎 Ultra-Premium Design**: A high-end aesthetic featuring:
-  - Kinetic Bento-grid layout.
-  - Glassmorphic components with backdrop blurs.
-  - Particle trails and magnetic text effects.
-  - Responsive, dark-mode optimized interface.
+- **🚀 Multimodal Intelligence**: Process PDFs, PowerPoint slides, Word documents, and lecture recordings (MP3/MP4) via Gemini's multimodal window.
+- **🧠 Autonomous Agent Core**: Deploy a multi-agent stack featuring the **Archivist** (Indexing), **Listener** (Parsing), and **Ghostwriter** (Synthesis) to reconstruct knowledge.
+- **📊 Logic Decompiler**: Automatically decompile technical complexity into visual Mermaid.js diagrams and atomic knowledge fragments.
+- **🎯 Exam Predictor**: Integrated probability analysis to extract high-probability patterns and calculate exam likelihood from source material.
+- **📅 Productivity Suite**: A complete Notion-inspired academic workspace:
+  - **Quick Notes**: Capture research and lecture snapshots instantly.
+  - **Task Board**: Manage your study workflow with a tactile Kanban interface.
+  - **Calendar**: Synchronize your academic schedule with intelligent deadline tracking.
+  - **Study Plan**: Generate automated, exam-focused preparation timelines.
+- **🎓 Interactive Learning**:
+  - **Smart Flashcards**: Rapid revision via auto-generated interactive study cards.
+  - **Quick Lessons**: Deep-dive into complex topics like "Distributed State Management" with AI-guided modules.
+- **💎 Ultra-Premium Design**:
+  - Kinetic Bento-grid layouts and cinematic Three.js Nebula scenes.
+  - Glassmorphic components with real-time backdrop blurs and particle trails.
+  - High-fidelity System Status matrix with live latency and node metrics.
 
 ---
 
 ## 🛠️ Technology Stack
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
-- **AI Engine**: [Google Gemini 2.0 Flash](https://ai.google.dev/models/gemini) / [OpenAI GPT-4o](https://openai.com/)
-- **Visuals**: [Mermaid.js](https://mermaid.js.org/) for Logic Flows
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
+- **AI Engine**: [Google Gemini 2.0 Flash](https://ai.google.dev/models/gemini), [OpenAI GPT-4o](https://openai.com/), [LangChain](https://www.langchain.com/)
+- **Database**: [Prisma](https://www.prisma.io/) with [Supabase](https://supabase.com/)
+- **Visuals**: [Three.js](https://threejs.org/) (React Three Fiber), [Mermaid.js](https://mermaid.js.org/)
 - **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/)
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **Parsing**: [OfficeParser](https://www.npmjs.com/package/officeparser) (for DOCX/PPTX)
+- **Parsing**: [OfficeParser](https://www.npmjs.com/package/officeparser), [PDF-Parse](https://www.npmjs.com/package/pdf-parse)
 
 ---
 
@@ -54,7 +57,6 @@ npm install
 Create a `.env` file in the root directory:
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
-GEMINI_API_KEY=your_google_gemini_api_key_here
 ```
 
 ### 4. Run the development server
@@ -67,17 +69,22 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## 📂 Project Structure
 
-- `app/workflow-assistant/`: Custom study extraction engine.
-- `app/predictor/`: AI-powered exam probability analysis.
-- `app/api/predict/`: Technical literacy agent API.
-- `src/components/`: Modular UI components (Mermaid Diagrams, Bento Cards, Flashcards, etc.).
+- `app/workflow-assistant/`: Custom study extraction and synthesis engine.
+- `app/predictor/`: AI-powered exam probability and pattern analysis.
+- `app/decompiler/`: Logic deconstruction and Mermaid diagram generation.
+- `app/dashboard/`: Centralized control hub for academic metrics and agents.
+- `app/tasks/`: Notion-like task board for workflow management.
+- `app/notes/`: Quick research and capture module.
+- `app/study-plan/`: Automated preparation timeline generator.
+- `src/components/`: Modular UI units (Three.js scenes, Bento cards, System Status matrix).
 
 ---
 
 ## 🎨 Design Philosophy
 
-The project follows a **"Brutalist-Glass"** aesthetic—combining sharp, bold typography with soft, translucent materials and vibrant neon accents. Every interaction is designed to feel tactile, responsive, and "alive."
+Academic Ghostwriter follows a **"Brutalist-Glass"** aesthetic—fusing sharp, bold typography with soft, translucent materials and vibrant neon accents. Every interaction is designed to feel tactile, responsive, and "alive," aiming to turn the friction of studying into a high-fidelity cinematic experience.
 
 ---
 
-*“Distilling lecture noise into exam-day clarity.”*
+*“Distilling lecture noise into exam-day clarity with structural intelligence.”*
+

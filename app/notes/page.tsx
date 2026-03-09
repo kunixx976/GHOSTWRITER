@@ -28,35 +28,7 @@ const colorClasses = {
 
 export default function QuickNotes() {
     const [currentTime, setCurrentTime] = useState("");
-    const [notes, setNotes] = useState<Note[]>([
-        {
-            id: '1',
-            title: 'React Server Components',
-            content: 'RSC allows components to render on the server, reducing bundle size and improving performance. Key insight: data fetching happens at component level.',
-            color: 'violet',
-            isPinned: true,
-            tags: ['React', 'Next.js'],
-            createdAt: '2 hours ago'
-        },
-        {
-            id: '2',
-            title: 'Exam Strategy: System Design',
-            content: 'Focus on: scalability patterns, CAP theorem trade-offs, and database sharding. Draw diagrams for every answer.',
-            color: 'amber',
-            isPinned: true,
-            tags: ['Exam Prep', 'System Design'],
-            createdAt: '5 hours ago'
-        },
-        {
-            id: '3',
-            title: 'TypeScript Utility Types',
-            content: 'Partial<T>, Required<T>, Pick<T, K>, Omit<T, K> - memorize these for the interview. Also: ReturnType and Parameters.',
-            color: 'blue',
-            isPinned: false,
-            tags: ['TypeScript'],
-            createdAt: 'Yesterday'
-        }
-    ]);
+    const [notes, setNotes] = useState<Note[]>([]);
 
     const [showNewNote, setShowNewNote] = useState(false);
     const [newNote, setNewNote] = useState({ title: '', content: '', color: 'violet' as Note['color'] });

@@ -16,7 +16,6 @@ export default function TemplatesPage() {
         { id: '4', title: 'Code Review', description: 'Checklist for reviewing code quality and best practices', category: 'project', icon: <Code size={20} />, uses: 67, isFavorite: false },
         { id: '5', title: 'Flashcard Set', description: 'Q&A format for active recall practice', category: 'study', icon: <BookOpen size={20} />, uses: 312, isFavorite: true },
         { id: '6', title: 'Weekly Planner', description: 'Time-blocked schedule with priorities', category: 'study', icon: <Target size={20} />, uses: 198, isFavorite: false },
-        { id: '7', title: 'LeetCode Trees', description: 'Curated list of essential Binary Tree and BST problems', category: 'project', icon: <Code size={20} />, uses: 124, isFavorite: true },
     ]);
     const [filter, setFilter] = useState<'all' | Template['category']>('all');
     const [search, setSearch] = useState('');

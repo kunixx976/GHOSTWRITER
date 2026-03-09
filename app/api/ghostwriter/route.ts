@@ -2,6 +2,9 @@ import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { NextResponse } from "next/server";
 import { prisma } from '@/lib/prisma';
+import { processPDF } from "@/lib/ai/ingestion";
+import { initializeVectorStore } from "@/lib/ai/vectorStore";
+import { getRelevantContext } from "@/lib/ai/retrieval";
 
 export const runtime = "nodejs";
 
@@ -45,9 +48,20 @@ export async function POST(req: Request) {
             prompt = formData.get("prompt")?.toString() || "Explain this file.";
             const file = formData.get("file") as File | null;
             if (file) {
-                // For Ghostwriter, we might want to extract text from file too
-                // But for now let's just use the filename
-                prompt += `\n\nContext from file: ${file.name}`;
+                console.log(`Ghostwriter: Ingesting file ${file.name}`);
+                let chunks = [];
+                if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+                    chunks = await processPDF(file);
+                } else {
+                    const text = await file.text();
+                    const { RecursiveCharacterTextSplitter } = await import("@langchain/textsplitters");
+                    const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
+                    chunks = await splitter.createDocuments([text]);
+                }
+                
+                await initializeVectorStore(chunks);
+                const context = await getRelevantContext(prompt, 5);
+                prompt += `\n\n[FILE CONTEXT: ${file.name}]\n${context}`;
             }
         }
     } catch (e) {

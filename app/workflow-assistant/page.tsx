@@ -12,7 +12,11 @@ import {
 import BentoCard from "@/components/BentoCard";
 import AgentRow from "@/components/AgentRow";
 import Flashcard from "@/components/Flashcard";
+import UploadZone from "@/components/UploadZone";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 
 export default function WorkflowAssistant() {
     const [currentTime, setCurrentTime] = useState("");
@@ -20,10 +24,30 @@ export default function WorkflowAssistant() {
     const [status, setStatus] = useState<"idle" | "processing" | "done">("idle");
     const [results, setResults] = useState<{ question: string; reason: string }[]>([]);
     const [distillation, setDistillation] = useState<string>("");
+    const [isDragging, setIsDragging] = useState(false);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const selectedFile = e.target.files[0];
+            setFile(selectedFile);
+            handleProcess(selectedFile);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = () => {
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const selectedFile = e.dataTransfer.files[0];
             setFile(selectedFile);
             handleProcess(selectedFile);
         }
@@ -41,13 +65,16 @@ export default function WorkflowAssistant() {
                 body: formData,
             });
 
-            if (!res.ok) throw new Error("Processing failed");
-
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({ error: "Unknown Server Error" }));
+                throw new Error(errData.error || res.statusText);
+            }
+            
             const data = await res.json();
             setResults(data.predictions || []);
             setDistillation(data.distillation || "");
             setStatus("done");
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI Distillation failed:", error);
             setStatus("idle");
         }
@@ -78,7 +105,7 @@ export default function WorkflowAssistant() {
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center gap-4 text-violet-400 font-black uppercase tracking-[0.4em] text-[10px]"
+                            className="flex items-center gap-4 text-violet-400 font-bold uppercase tracking-[0.4em] text-[10px] font-display"
                         >
                             <div className="w-8 h-[1px] bg-violet-500/50" />
                             Neural Intelligence Layer
@@ -87,12 +114,12 @@ export default function WorkflowAssistant() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="text-[clamp(2.5rem,8vw,5rem)] font-black text-white uppercase italic tracking-tighter leading-[0.85]"
+                            className="text-[clamp(2.5rem,8vw,5rem)] font-black text-white uppercase italic tracking-tighter leading-[0.85] font-display"
                         >
                             Workflow <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-400 to-cyan-400">Assistant</span>
                         </motion.h1>
-                        <p className="text-slate-400 max-w-lg font-medium leading-relaxed uppercase text-[11px] tracking-widest">
+                        <p className="text-slate-400 max-w-lg font-medium leading-relaxed uppercase text-[11px] tracking-widest font-sans">
                             The Ghostwriter extraction engine. We <span className="text-white font-black italic">decompile complex lecture data</span> into high-density examination signals.
                         </p>
                     </div>
@@ -101,19 +128,19 @@ export default function WorkflowAssistant() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="flex gap-4 p-4 bg-white/[0.02] rounded-[2.5rem] border border-white/10 backdrop-blur-2xl shadow-2xl relative group overflow-hidden"
+                        className="flex gap-4 p-4 bg-white/[0.02] rounded-[2.5rem] border border-white/10 backdrop-blur-2xl shadow-2xl relative group overflow-hidden font-display"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                         <div className="px-6 border-r border-white/10 flex flex-col">
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Latency</span>
                             <div className="flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-xl font-black text-emerald-400 font-mono italic tracking-tighter">52ms</span>
+                                <span className="text-xl font-black text-emerald-400 italic tracking-tighter">52ms</span>
                             </div>
                         </div>
                         <div className="px-6 flex flex-col">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Neural Clock</span>
-                            <span className="text-xl font-black text-white font-mono italic tracking-tighter">{currentTime || "12:19:27"}</span>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1 font-display">Neural Clock</span>
+                            <span className="text-xl font-black text-white italic tracking-tighter">{currentTime || "12:19:27"}</span>
                         </div>
                     </motion.div>
                 </div>
@@ -136,59 +163,31 @@ export default function WorkflowAssistant() {
 
             {/* Main Action Grid */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-                {/* Upload Zone */}
-                <div className="md:col-span-8 group relative">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-violet-600/20 via-cyan-500/20 to-violet-600/20 rounded-[3rem] blur opacity-0 group-hover:opacity-100 transition duration-1000" />
-                    <div className="relative h-full bg-[#0a0a0a] border border-white/5 rounded-[2.8rem] p-12 overflow-hidden flex flex-col">
-                        <div className="flex items-center justify-between mb-12">
-                            <div className="space-y-1">
-                                <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Source Ingestion</h3>
-                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Awaiting course materials for decompilation</p>
+                {/* High-Fidelity Upload Section */}
+                <div className="md:col-span-8 relative">
+                    {status === 'processing' ? (
+                        <div className="h-full min-h-[450px] bg-[#0a0a0a]/50 border border-white/5 rounded-[3.5rem] flex flex-col items-center justify-center gap-8 backdrop-blur-3xl relative overflow-hidden">
+                             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-full bg-violet-600/10 blur-[150px] -z-10 rounded-full animate-pulse" />
+                             <div className="relative">
+                                <div className="absolute inset-0 bg-violet-500 blur-3xl opacity-20 animate-spin-slow" />
+                                <Loader2 size={60} className="text-violet-500 animate-spin" />
                             </div>
-                            <div className="p-4 bg-violet-600/10 border border-violet-500/20 rounded-2xl text-violet-400">
-                                <Layers size={24} />
+                            <div className="text-center space-y-3">
+                                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter animate-pulse font-display">Neural Sync in Progress</h3>
+                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Decompiling structural data fragments...</p>
+                                <div className="flex gap-1.5 justify-center mt-4">
+                                    {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-violet-500/40 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />)}
+                                </div>
                             </div>
                         </div>
-
-                        <label className={`flex-1 min-h-[300px] border-2 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center group/drop hover:bg-white/[0.01] hover:border-violet-500/20 transition-all duration-500 cursor-pointer ${status === 'processing' ? 'pointer-events-none' : ''}`}>
-                            <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.docx,.pptx,.txt" />
-
-                            {status === 'processing' ? (
-                                <div className="flex flex-col items-center gap-6">
-                                    <div className="relative">
-                                        <div className="absolute inset-0 bg-violet-500 blur-3xl opacity-20 animate-pulse" />
-                                        <Loader2 size={48} className="text-violet-500 animate-spin" />
-                                    </div>
-                                    <div className="text-center space-y-2">
-                                        <p className="text-lg font-black text-white uppercase italic tracking-tight animate-pulse">Neural Sync in Progress</p>
-                                        <div className="flex gap-1 justify-center">
-                                            {[1, 2, 3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-violet-500/40 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />)}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center gap-8 text-center px-8">
-                                    <div className="relative">
-                                        <div className="absolute -inset-8 bg-blue-500/10 blur-3xl rounded-full" />
-                                        <div className="relative flex items-center justify-center">
-                                            <div className="p-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-[2rem] text-white shadow-2xl ring-1 ring-white/20">
-                                                <Upload size={32} />
-                                            </div>
-                                            <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 3 }} className="absolute -right-8 -top-4 p-3 bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl text-cyan-400">
-                                                <FileText size={18} />
-                                            </motion.div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <p className="text-xl font-black text-white uppercase italic tracking-tight">Drop Source Materials</p>
-                                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
-                                            Select PDF, DOCX, or PPTX. <br /> Max combined size <span className="text-white italic">500.00 MiB</span>.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </label>
-                    </div>
+                    ) : (
+                        <div className="group relative">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-violet-600/20 via-cyan-500/20 to-violet-600/20 rounded-[3.5rem] blur opacity-0 group-hover:opacity-100 transition duration-1000" />
+                            <div className="relative bg-[#0a0a0a]/50 border border-white/5 rounded-[3.5rem] p-8 md:p-12 backdrop-blur-3xl shadow-2xl transition-all hover:border-violet-500/20 overflow-hidden">
+                                <UploadZone onUpload={handleProcess} />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Side Stack Info */}
@@ -233,8 +232,10 @@ export default function WorkflowAssistant() {
                         className="grid grid-cols-1 md:grid-cols-12 gap-10"
                     >
                         {/* Main Summary */}
-                        <div className="md:col-span-8 p-12 bg-white/[0.02] border border-white/5 rounded-[3rem] backdrop-blur-xl group">
-                            <div className="flex items-center justify-between mb-12">
+                        <div className="md:col-span-8 p-12 bg-white/[0.01] border border-white/5 rounded-[3.5rem] backdrop-blur-[40px] shadow-2xl overflow-hidden relative group">
+                            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="relative">
+                                <div className="flex items-center justify-between mb-12">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 rounded-lg bg-violet-600/20 text-violet-400">
                                         <Sparkles size={16} />
@@ -248,13 +249,22 @@ export default function WorkflowAssistant() {
                                 </div>
                             </div>
                             <div className="prose prose-invert max-w-none 
-                                prose-p:text-slate-300 prose-p:leading-relaxed prose-p:text-sm prose-p:font-medium
-                                prose-strong:text-white prose-strong:font-black
-                                prose-headings:text-white prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight
-                                prose-ul:list-disc prose-ul:pl-6 prose-li:text-slate-400 prose-li:mb-2 prose-li:text-sm italic">
-                                <ReactMarkdown>{distillation}</ReactMarkdown>
+                                prose-p:text-slate-400 prose-p:leading-[1.8] prose-p:text-base prose-p:mb-8
+                                prose-strong:text-violet-100 prose-strong:font-bold
+                                prose-headings:text-white prose-headings:font-black prose-headings:tracking-[-0.02em] font-display
+                                prose-h1:text-5xl prose-h1:mb-12 prose-h1:bg-gradient-to-r prose-h1:from-white prose-h1:to-white/40 prose-h1:bg-clip-text prose-h1:text-transparent
+                                prose-h2:text-2xl prose-h2:mt-16 prose-h2:mb-8 prose-h2:text-violet-400/90
+                                prose-h3:text-lg prose-h3:mt-12 prose-h3:mb-6 prose-h3:text-white/80 prose-h3:uppercase prose-h3:tracking-widest
+                                prose-ul:list-disc prose-ul:pl-8 prose-li:text-slate-400 prose-li:mb-4 prose-li:text-base prose-li:leading-relaxed
+                                prose-ol:list-decimal prose-ol:pl-8 prose-ol:space-y-4
+                                prose-hr:border-white/5 prose-hr:my-16
+                                prose-table:w-full prose-table:my-10 prose-table:border-hidden
+                                prose-th:text-violet-400 prose-th:text-[11px] prose-th:font-black prose-th:uppercase prose-th:tracking-[0.2em] prose-th:pb-6 prose-th:text-left prose-th:border-b prose-th:border-white/10
+                                prose-td:text-slate-300 prose-td:text-sm prose-td:py-5 prose-td:border-b prose-td:border-white/[0.03] prose-td:font-medium">
+                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>{distillation}</ReactMarkdown>
                             </div>
                         </div>
+                    </div>
 
                         {/* Flashcards / Nodes */}
                         <div className="md:col-span-4 space-y-6">
