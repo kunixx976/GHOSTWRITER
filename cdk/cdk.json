@@ -1,0 +1,6 @@
+{
+  "app": "node bin/ghostwriter-cdk.js",
+  "context": {
+    "@aws-cdk/core:stackRelativeExports": true
+  }
+}

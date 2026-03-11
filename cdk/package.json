@@ -1,6 +1,7 @@
 {
   "name": "ghostwriter-cdk",
   "version": "0.1.0",
+  "type": "commonjs",
   "description": "CDK infrastructure for GHOSTWRITER PDF processing",
   "scripts": {
     "build": "tsc",

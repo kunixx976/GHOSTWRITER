@@ -88,16 +88,6 @@ export class InfraStack extends cdk.Stack {
       integration: reasonIntegration,
     });
 
-    // API Key and usage plan (simple example)
-    const apiKey = new apigateway.ApiKey(this, 'ApiKey', {
-      apiKeyName: 'GhostwriterApiKey',
-      description: 'API key for external clients',
-    });
-    const usagePlan = new apigateway.UsagePlan(this, 'UsagePlan', {
-      name: 'GhostwriterUsagePlan',
-      apiStages: [{ api: httpApi, stage: httpApi.defaultStage }],
-    });
-    usagePlan.addApiKey(apiKey);
 
     // ---------- CloudFront Distribution ----------
     const origin = new origins.HttpOrigin(httpApi.apiEndpoint.replace('https://', ''), {
@@ -125,12 +115,11 @@ export class InfraStack extends cdk.Stack {
       bucketName: cdk.Stack.of(this).stackName.toLowerCase() + '-frontend',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      websiteIndexDocument: 'index.html',
-      publicReadAccess: true,
     });
 
     // CloudFront distribution for static site
     const siteDistribution = new cloudfront.Distribution(this, 'SiteDistribution', {
+      defaultRootObject: 'index.html',
       defaultBehavior: {
         origin: new origins.S3Origin(frontendBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -151,15 +140,12 @@ export class InfraStack extends cdk.Stack {
     }));
 
     // Output useful values
-    new cdk.CfnOutput(this, 'ApiEndpoint', { value: httpApi.apiEndpoint });
-    new cdk.CfnOutput(this, 'CloudFrontDomain', { value: distribution.distributionDomainName });
-    new cdk.CfnOutput(this, 'SiteDomain', { value: siteDistribution.distributionDomainName });
-    new cdk.CfnOutput(this, 'DataLakeBucket', { value: dataLake.bucketName });
-    new cdk.CfnOutput(this, 'FrontendBucket', { value: frontendBucket.bucketName });
-    new cdk.CfnOutput(this, 'KnowledgeTable', { value: knowledgeTable.tableName });
-    new cdk.CfnOutput(this, 'ApiEndpoint', { value: httpApi.apiEndpoint });
-    new cdk.CfnOutput(this, 'CloudFrontDomain', { value: distribution.distributionDomainName });
-    new cdk.CfnOutput(this, 'DataLakeBucket', { value: dataLake.bucketName });
-    new cdk.CfnOutput(this, 'KnowledgeTable', { value: knowledgeTable.tableName });
+    new cdk.CfnOutput(this, 'ApiEndpointOutput', { value: httpApi.apiEndpoint });
+    new cdk.CfnOutput(this, 'CloudFrontDomainOutput', { value: distribution.distributionDomainName });
+    new cdk.CfnOutput(this, 'SiteDomainOutput', { value: siteDistribution.distributionDomainName });
+    new cdk.CfnOutput(this, 'DataLakeBucketOutput', { value: dataLake.bucketName });
+    new cdk.CfnOutput(this, 'FrontendBucketOutput', { value: frontendBucket.bucketName });
+    new cdk.CfnOutput(this, 'KnowledgeTableOutput', { value: knowledgeTable.tableName });
+
   }
 }
