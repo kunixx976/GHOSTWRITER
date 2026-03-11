@@ -30,7 +30,7 @@ Academic Ghostwriter is a premium, AI-native intelligence platform designed to d
 ## 🛠️ Technology Stack
 
 - **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
-- **AI Engine**: [Google Gemini 2.0 Flash](https://ai.google.dev/models/gemini), [OpenAI GPT-4o](https://openai.com/), [LangChain](https://www.langchain.com/)
+- **AI Engine**: [OpenAI GPT-4o](https://openai.com/), [LangChain](https://www.langchain.com/)
 - **Database**: [Prisma](https://www.prisma.io/) with [Supabase](https://supabase.com/)
 - **Visuals**: [Three.js](https://threejs.org/) (React Three Fiber), [Mermaid.js](https://mermaid.js.org/)
 - **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/)
