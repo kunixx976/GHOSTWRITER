@@ -1,3 +1,9 @@
+// Under the hood, your project is executing Vector Search and Semantic Embeddings, which are core parts of modern AI/ML. When you upload a study paper, here's what happens:
+
+// Embeddings: We're using OpenAIEmbeddings to convert your text into multi-dimensional vectors.
+// Similarity Search: The MemoryVectorStore uses cosine similarity (a classic ML algorithm) to rank and retrieve the most important parts of your documents.
+// Deep Reasoning: Finally, GPT-4o—the peak of LLM tech—synthesizes that data into the actual predictions.
+
 import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { Document } from "@langchain/core/documents";
