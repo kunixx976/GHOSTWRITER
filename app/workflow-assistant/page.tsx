@@ -1,13 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
     Upload, Mic, FileText, Sparkles,
     Layers, Ghost, Zap, Clock, Globe,
     FileVideo, Music, Play, ChevronRight,
     Brain, Target, BookOpen, Loader2,
-    CheckCircle2, ArrowRight
+    CheckCircle2, ArrowRight, Download
 } from "lucide-react";
 import BentoCard from "@/components/BentoCard";
 import AgentRow from "@/components/AgentRow";
@@ -17,6 +17,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import html2pdf from "html2pdf.js";
 
 export default function WorkflowAssistant() {
     const [currentTime, setCurrentTime] = useState("");
@@ -25,6 +26,7 @@ export default function WorkflowAssistant() {
     const [results, setResults] = useState<{ question: string; reason: string }[]>([]);
     const [distillation, setDistillation] = useState<string>("");
     const [isDragging, setIsDragging] = useState(false);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -77,6 +79,63 @@ export default function WorkflowAssistant() {
         } catch (error: any) {
             console.error("AI Distillation failed:", error);
             setStatus("idle");
+        }
+    };
+
+    const handleExportPDF = () => {
+        if (!contentRef.current) {
+            console.error("Content ref not found");
+            return;
+        }
+
+        try {
+            // Create a clone of the element with simplified styling for PDF export
+            const element = contentRef.current;
+            const clonedElement = element.cloneNode(true) as HTMLElement;
+            
+            // Apply simpler styles for the cloned element
+            clonedElement.style.color = "#000";
+            clonedElement.style.backgroundColor = "#fff";
+            clonedElement.style.padding = "20px";
+            clonedElement.style.fontFamily = "Arial, sans-serif";
+            
+            // Process all child elements to remove unnecessary styling
+            const processElement = (el: Element) => {
+                (el as HTMLElement).style.color = "#000";
+                (el as HTMLElement).style.backgroundColor = "transparent";
+                // Remove text gradients for better PDF rendering
+                (el as HTMLElement).style.backgroundImage = "none";
+                (el as HTMLElement).style.backgroundClip = "unset";
+                (el as HTMLElement).style.webkitBackgroundClip = "unset";
+                
+                Array.from(el.children).forEach(child => {
+                    processElement(child);
+                });
+            };
+            
+            processElement(clonedElement);
+            
+            const opt = {
+                margin: 15,
+                filename: `distillation-output-${new Date().toISOString().slice(0, 10)}.pdf`,
+                image: { type: "jpeg" as const, quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    backgroundColor: "#ffffff",
+                    useCORS: true,
+                    logging: false
+                },
+                jsPDF: { orientation: "portrait" as const, unit: "mm" as const, format: "a4" },
+                pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+            };
+
+            html2pdf().set(opt).from(clonedElement).save().catch((error: any) => {
+                console.error("PDF export error:", error);
+                alert("Failed to export PDF. Please try again.");
+            });
+        } catch (error) {
+            console.error("PDF export error:", error);
+            alert("Failed to export PDF. Please try again.");
         }
     };
 
@@ -235,7 +294,7 @@ export default function WorkflowAssistant() {
                         <div className="md:col-span-8 p-12 bg-white/[0.01] border border-white/5 rounded-[3.5rem] backdrop-blur-[40px] shadow-2xl overflow-hidden relative group">
                             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             <div className="relative">
-                                <div className="flex items-center justify-between mb-12">
+                            <div className="flex items-center justify-between mb-12">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 rounded-lg bg-violet-600/20 text-violet-400">
                                         <Sparkles size={16} />
@@ -243,25 +302,32 @@ export default function WorkflowAssistant() {
                                     <span className="text-xs font-black text-white uppercase tracking-widest">Executive Summary</span>
                                 </div>
                                 <div className="flex gap-2">
-                                    {['Export PDF', 'Sync Notion'].map(opt => (
-                                        <button key={opt} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black text-slate-500 hover:text-white transition-colors">{opt}</button>
-                                    ))}
+                                    <button 
+                                        onClick={handleExportPDF}
+                                        className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black text-slate-500 hover:text-white hover:border-violet-500/30 hover:bg-violet-500/5 transition-colors flex items-center gap-2"
+                                    >
+                                        <Download size={12} />
+                                        Export PDF
+                                    </button>
+                                    <button className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black text-slate-500 hover:text-white transition-colors">Sync Notion</button>
                                 </div>
                             </div>
-                            <div className="prose prose-invert max-w-none 
-                                prose-p:text-slate-400 prose-p:leading-[1.8] prose-p:text-base prose-p:mb-8
-                                prose-strong:text-violet-100 prose-strong:font-bold
-                                prose-headings:text-white prose-headings:font-black prose-headings:tracking-[-0.02em] font-display
-                                prose-h1:text-5xl prose-h1:mb-12 prose-h1:bg-gradient-to-r prose-h1:from-white prose-h1:to-white/40 prose-h1:bg-clip-text prose-h1:text-transparent
-                                prose-h2:text-2xl prose-h2:mt-16 prose-h2:mb-8 prose-h2:text-violet-400/90
-                                prose-h3:text-lg prose-h3:mt-12 prose-h3:mb-6 prose-h3:text-white/80 prose-h3:uppercase prose-h3:tracking-widest
-                                prose-ul:list-disc prose-ul:pl-8 prose-li:text-slate-400 prose-li:mb-4 prose-li:text-base prose-li:leading-relaxed
-                                prose-ol:list-decimal prose-ol:pl-8 prose-ol:space-y-4
-                                prose-hr:border-white/5 prose-hr:my-16
-                                prose-table:w-full prose-table:my-10 prose-table:border-hidden
-                                prose-th:text-violet-400 prose-th:text-[11px] prose-th:font-black prose-th:uppercase prose-th:tracking-[0.2em] prose-th:pb-6 prose-th:text-left prose-th:border-b prose-th:border-white/10
-                                prose-td:text-slate-300 prose-td:text-sm prose-td:py-5 prose-td:border-b prose-td:border-white/[0.03] prose-td:font-medium">
-                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>{distillation}</ReactMarkdown>
+                            <div ref={contentRef}>
+                                <div className="prose prose-invert max-w-none 
+                                    prose-p:text-slate-400 prose-p:leading-[1.8] prose-p:text-base prose-p:mb-8
+                                    prose-strong:text-violet-100 prose-strong:font-bold
+                                    prose-headings:text-white prose-headings:font-black prose-headings:tracking-[-0.02em] font-display
+                                    prose-h1:text-5xl prose-h1:mb-12 prose-h1:bg-gradient-to-r prose-h1:from-white prose-h1:to-white/40 prose-h1:bg-clip-text prose-h1:text-transparent
+                                    prose-h2:text-2xl prose-h2:mt-16 prose-h2:mb-8 prose-h2:text-violet-400/90
+                                    prose-h3:text-lg prose-h3:mt-12 prose-h3:mb-6 prose-h3:text-white/80 prose-h3:uppercase prose-h3:tracking-widest
+                                    prose-ul:list-disc prose-ul:pl-8 prose-li:text-slate-400 prose-li:mb-4 prose-li:text-base prose-li:leading-relaxed
+                                    prose-ol:list-decimal prose-ol:pl-8 prose-ol:space-y-4
+                                    prose-hr:border-white/5 prose-hr:my-16
+                                    prose-table:w-full prose-table:my-10 prose-table:border-hidden
+                                    prose-th:text-violet-400 prose-th:text-[11px] prose-th:font-black prose-th:uppercase prose-th:tracking-[0.2em] prose-th:pb-6 prose-th:text-left prose-th:border-b prose-th:border-white/10
+                                    prose-td:text-slate-300 prose-td:text-sm prose-td:py-5 prose-td:border-b prose-td:border-white/[0.03] prose-td:font-medium">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>{distillation}</ReactMarkdown>
+                                </div>
                             </div>
                         </div>
                     </div>

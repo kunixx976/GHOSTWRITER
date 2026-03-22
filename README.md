@@ -1,90 +1,150 @@
-# 👻 Academic Ghostwriter
+# ML Scorer — Exam Predictor Integration
 
-**High-Fidelity Study Extraction Engine // v4.0.2 Protocol**
+## What's in this folder
 
-Academic Ghostwriter is a premium, AI-native intelligence platform designed to deconstruct lecture noise, dense PDFs, and complex presentations into structural clarity. Built with a multimodal agentic core (Gemini 2.0 Flash & GPT-4o), it provides near-instant synthesis with a high-end, cinematic user experience and a brutalist-glass aesthetic.
-
----
-
-## ✨ Key Features
-
-- **🚀 Multimodal Intelligence**: Process PDFs, PowerPoint slides, Word documents, and lecture recordings (MP3/MP4) via Gemini's multimodal window.
-- **🧠 Autonomous Agent Core**: Deploy a multi-agent stack featuring the **Archivist** (Indexing), **Listener** (Parsing), and **Ghostwriter** (Synthesis) to reconstruct knowledge.
-- **📊 Logic Decompiler**: Automatically decompile technical complexity into visual Mermaid.js diagrams and atomic knowledge fragments.
-- **🎯 Exam Predictor**: Integrated probability analysis to extract high-probability patterns and calculate exam likelihood from source material.
-- **📅 Productivity Suite**: A complete Notion-inspired academic workspace:
-  - **Quick Notes**: Capture research and lecture snapshots instantly.
-  - **Task Board**: Manage your study workflow with a tactile Kanban interface.
-  - **Calendar**: Synchronize your academic schedule with intelligent deadline tracking.
-  - **Study Plan**: Generate automated, exam-focused preparation timelines.
-- **🎓 Interactive Learning**:
-  - **Smart Flashcards**: Rapid revision via auto-generated interactive study cards.
-  - **Quick Lessons**: Deep-dive into complex topics like "Distributed State Management" with AI-guided modules.
-- **💎 Ultra-Premium Design**:
-  - Kinetic Bento-grid layouts and cinematic Three.js Nebula scenes.
-  - Glassmorphic components with real-time backdrop blurs and particle trails.
-  - High-fidelity System Status matrix with live latency and node metrics.
+| File | Purpose |
+|---|---|
+| `ml_scorer.py` | Python FastAPI service — TF-IDF + recency scoring engine |
+| `route.ts` | Drop-in replacement for your Next.js `/app/api/predict/route.ts` |
+| `requirements.txt` | Python dependencies |
 
 ---
 
-## 🛠️ Technology Stack
+## How the ML pipeline works
 
-- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
-- **AI Engine**: [OpenAI GPT-4o](https://openai.com/), [LangChain](https://www.langchain.com/)
-- **Database**: [Prisma](https://www.prisma.io/) with [Supabase](https://supabase.com/)
-- **Visuals**: [Three.js](https://threejs.org/) (React Three Fiber), [Mermaid.js](https://mermaid.js.org/)
-- **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Parsing**: [OfficeParser](https://www.npmjs.com/package/officeparser), [PDF-Parse](https://www.npmjs.com/package/pdf-parse)
+```
+Uploaded files
+     │
+     ├──► Python ML Scorer (port 8001)
+     │         • Extracts text (PDF/DOCX/TXT)
+     │         • Builds TF-IDF matrix across all docs
+     │         • Weights recent papers more heavily (exponential decay)
+     │         • Extracts candidate questions via regex
+     │         • Scores each question → calibrated probability 42–97%
+     │
+     └──► Claude API
+               • Semantic understanding
+               • Context-aware reasoning
+               • Study tips + exam pattern
+
+Both results are MERGED with weighted voting:
+  Final probability = ML × 0.45 + Claude × 0.55
+```
 
 ---
 
-## 🚀 Getting Started
+## Setup (5 minutes)
 
-### 1. Clone the repository
+### Step 1 — Install Python dependencies
+
 ```bash
-git clone https://github.com/kunixx976/GHOSTWRITER.git
-cd GHOSTWRITER
+pip install -r requirements.txt
 ```
 
-### 2. Install dependencies
+### Step 2 — Start the ML scorer server
+
 ```bash
-npm install
+uvicorn ml_scorer:app --reload --port 8001
 ```
 
-### 3. Setup Environment Variables
-Create a `.env` file in the root directory:
-```env
-OPENAI_API_KEY=your_openai_api_key_here
+You should see:
+```
+INFO:     Uvicorn running on http://127.0.0.1:8001
 ```
 
-### 4. Run the development server
+Test it's working:
+```bash
+curl http://localhost:8001/health
+# → {"status":"ok","sklearn":true,"pdfplumber":true,"docx":true}
+```
+
+### Step 3 — Add env variable to your Next.js app
+
+In your `.env.local`:
+```
+ML_SCORER_URL=http://localhost:8001
+ANTHROPIC_API_KEY=your_key_here
+```
+
+### Step 4 — Replace your API route
+
+Copy `route.ts` to:
+```
+Ghostwriter-main/app/api/predict/route.ts
+```
+(overwrite the existing file)
+
+### Step 5 — Restart Next.js
+
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the results.
 
 ---
 
-## 📂 Project Structure
+## Graceful degradation
 
-- `app/workflow-assistant/`: Custom study extraction and synthesis engine.
-- `app/predictor/`: AI-powered exam probability and pattern analysis.
-- `app/decompiler/`: Logic deconstruction and Mermaid diagram generation.
-- `app/dashboard/`: Centralized control hub for academic metrics and agents.
-- `app/tasks/`: Notion-like task board for workflow management.
-- `app/notes/`: Quick research and capture module.
-- `app/study-plan/`: Automated preparation timeline generator.
-- `src/components/`: Modular UI units (Three.js scenes, Bento cards, System Status matrix).
+If the Python ML scorer is not running, the `route.ts` automatically falls back
+to **Claude-only mode** — your app will still work, just without ML scoring.
+You'll see `"ml_available": false` in the response meta.
 
 ---
 
-## 🎨 Design Philosophy
+## Deploying to production
 
-Academic Ghostwriter follows a **"Brutalist-Glass"** aesthetic—fusing sharp, bold typography with soft, translucent materials and vibrant neon accents. Every interaction is designed to feel tactile, responsive, and "alive," aiming to turn the friction of studying into a high-fidelity cinematic experience.
+### Option A — Same server (recommended for Vercel + Railway)
+
+Deploy the Python service to Railway or Render:
+1. Push `ml_scorer.py` + `requirements.txt` to a new repo
+2. Set start command: `uvicorn ml_scorer:app --host 0.0.0.0 --port 8001`
+3. Set `ML_SCORER_URL` in your Vercel environment variables to the Railway URL
+
+### Option B — Vercel Edge (advanced)
+
+Convert the TF-IDF logic to TypeScript using `natural` npm package:
+```bash
+npm install natural
+```
+Then the ML logic runs directly inside your Next.js API route with no separate service.
 
 ---
 
-*“Distilling lecture noise into exam-day clarity with structural intelligence.”*
+## Improving accuracy over time
 
+The scorer gets better as you add more past papers. Key levers:
+
+| What to do | Effect |
+|---|---|
+| Upload 5+ years of past papers | TF-IDF learns recurring topics |
+| Upload the official syllabus | Topic weighting becomes more targeted |
+| Upload mark schemes | Learns question phrasing patterns |
+| Adjust `ML_WEIGHT` / `CLAUDE_WEIGHT` in `route.ts` | Tune the blend ratio |
+
+---
+
+## API reference
+
+### `POST /ml-score`
+
+Accepts multipart form with `files[]` field.
+
+**Response:**
+```json
+{
+  "predicted_questions": [
+    {
+      "question": "Explain the significance of Newton's second law...",
+      "topic": "Newton",
+      "probability": 87.4,
+      "reason": "High recurrence of 'Newton, second, law' across 4/5 papers (TF-IDF rank: 0.0341)",
+      "difficulty": "Medium",
+      "type": "Long Answer",
+      "ml_score": 0.0341
+    }
+  ],
+  "hot_topics": ["Newton", "Thermodynamics", "Waves"],
+  "total_questions_analysed": 78,
+  "documents_processed": 5,
+  "method": "TF-IDF frequency + recency weighting + keyword overlap"
+}
+```

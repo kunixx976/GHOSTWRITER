@@ -15,15 +15,15 @@ export const processPDF = async (file: Blob) => {
             rawDocs = await loader.load();
         } catch (loaderError) {
             console.warn("PDFLoader failed, trying officeparser fallback:", loaderError);
-            const officeParser = await import("officeparser");
-            const text = await officeParser.parseAsync(buffer as any);
+            const officeParser = await import("officeparser") as any;
+            const text = await (officeParser.parseOfficeAsync || officeParser.parseAsync || officeParser.default?.parseOfficeAsync)(buffer as any);
             rawDocs = [{ pageContent: text, metadata: {} }];
         }
 
         if (rawDocs.length === 0 || !rawDocs[0].pageContent) {
             console.warn("processPDF: No text extracted from PDFLoader, trying officeparser fallback");
-            const officeParser = await import("officeparser");
-            const text = await officeParser.parseAsync(buffer as any);
+            const officeParser = await import("officeparser") as any;
+            const text = await (officeParser.parseOfficeAsync || officeParser.parseAsync || officeParser.default?.parseOfficeAsync)(buffer as any);
             rawDocs = [{ pageContent: text, metadata: {} }];
         }
 
