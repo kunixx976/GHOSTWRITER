@@ -17,7 +17,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import html2pdf from "html2pdf.js";
 
 export default function WorkflowAssistant() {
     const [currentTime, setCurrentTime] = useState("");
@@ -82,13 +81,16 @@ export default function WorkflowAssistant() {
         }
     };
 
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         if (!contentRef.current) {
             console.error("Content ref not found");
             return;
         }
 
         try {
+            // Dynamically import html2pdf to avoid SSR issues
+            const html2pdf = (await import("html2pdf.js")).default;
+            
             // Create a clone of the element with simplified styling for PDF export
             const element = contentRef.current;
             const clonedElement = element.cloneNode(true) as HTMLElement;
