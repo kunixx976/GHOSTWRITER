@@ -414,6 +414,17 @@ export default function PredictorPage() {
                                     />
                                 </div>
                             )}
+                            
+                            {/* Error Display */}
+                            {error && (
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-start gap-3 text-rose-400">
+                                    <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-[11px] font-black uppercase tracking-widest mb-1">Neural Sync Failed</p>
+                                        <p className="text-[12px] font-medium leading-relaxed">{error}</p>
+                                    </div>
+                                </motion.div>
+                            )}
                         </div>
                     </div>
                 </div>
