@@ -1,5 +1,5 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { WebPDFLoader } from "@langchain/community/document_loaders/web/pdf";
 
 export const processPDF = async (file: Blob) => {
     try {
@@ -11,7 +11,7 @@ export const processPDF = async (file: Blob) => {
 
         let rawDocs = [];
         try {
-            const loader = new PDFLoader(new Blob([buffer]));
+            const loader = new WebPDFLoader(new Blob([buffer], { type: "application/pdf" }));
             rawDocs = await loader.load();
         } catch (loaderError) {
             console.warn("PDFLoader failed, trying officeparser fallback:", loaderError);
