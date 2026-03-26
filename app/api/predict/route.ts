@@ -5,7 +5,12 @@ import { initializeVectorStore } from "@/lib/ai/vectorStore";
 import { getRelevantContext } from "@/lib/ai/retrieval";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+export const maxDuration = 60; // Allow up to 60s for Vercel Hobby tier
+
+const openai = new OpenAI({ 
+    apiKey: process.env.OPENAI_API_KEY || "",
+    baseURL: process.env.OPENAI_BASE_URL || undefined,
+});
 
 /* ─── Helper: ingest a single file into the vector store ─── */
 async function ingestFile(file: File): Promise<string> {
