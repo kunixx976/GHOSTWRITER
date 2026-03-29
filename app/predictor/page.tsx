@@ -177,8 +177,20 @@ export default function PredictorPage() {
             setProgress(30);
             const res = await fetch("/api/predict", { method: "POST", body: formData });
             setProgress(75);
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.details || data.error || "API Route failed");
+            
+            let data: any;
+            try {
+                const text = await res.text();
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    throw new Error(`Server returned (${res.status}): ${text.slice(0, 100).replace(/<[^>]*>?/gm, '')}`);
+                }
+            } catch (err: any) {
+                throw new Error(err.message || "Failed to parse API response");
+            }
+            
+            if (!res.ok) throw new Error(data?.details || data?.error || "API Route failed");
 
             // Normalise: map API fields to unified AnalysisResult
             const normalised: AnalysisResult = {
