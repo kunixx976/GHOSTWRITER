@@ -204,7 +204,7 @@ export default function PredictorPage() {
                     difficulty: p.difficulty || "Medium",
                     type: p.type || "Long Answer",
                 })),
-                hot_topics: data.hot_topics || (data.technicalMatrix || []).slice(0, 6).map((m: MatrixItem) => m.concept),
+                hot_topics: data.hot_topics ? data.hot_topics.map((ht: any) => typeof ht === 'string' ? ht : ht.topic) : (data.technicalMatrix || []).slice(0, 6).map((m: MatrixItem) => m.concept),
                 study_tips: data.study_tips || [],
                 pyp_insights: data.pyp_insights || [],
                 exam_pattern: data.exam_pattern || "",

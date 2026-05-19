@@ -134,7 +134,7 @@ ${materialSnippet}`
                 },
             ],
             response_format: { type: "json_object" },
-            max_tokens: 1716,
+            max_tokens: 8000,
         });
 
         // We extract the subject during the structure parsing, so we cannot inject it directly into the second prompt ahead of time.
@@ -179,7 +179,7 @@ Course Material:
 ${materialSnippet}`
                 },
             ],
-            max_tokens: 1716,
+            max_tokens: 8000,
         });
 
         // Wait for both promises simultaneously for an advanced, faster workflow response
@@ -193,8 +193,10 @@ ${materialSnippet}`
 
         let structuredData: any;
         try {
-            structuredData = JSON.parse(rawStructure);
-        } catch {
+            const cleanedStructure = rawStructure.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
+            structuredData = JSON.parse(cleanedStructure);
+        } catch (err) {
+            console.error("Failed to parse JSON. Raw structure was:", rawStructure);
             throw new Error("Structured analysis returned invalid JSON");
         }
 
