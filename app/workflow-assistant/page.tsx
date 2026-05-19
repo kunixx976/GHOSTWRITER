@@ -24,6 +24,7 @@ export default function WorkflowAssistant() {
     const [status, setStatus] = useState<"idle" | "processing" | "done">("idle");
     const [results, setResults] = useState<{ question: string; reason: string }[]>([]);
     const [distillation, setDistillation] = useState<string>("");
+    const [error, setError] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
 
@@ -58,6 +59,7 @@ export default function WorkflowAssistant() {
         try {
             setStatus("processing");
             setDistillation("");
+            setError(null);
             const formData = new FormData();
             formData.append("file", targetFile);
 
@@ -77,6 +79,7 @@ export default function WorkflowAssistant() {
             setStatus("done");
         } catch (error: any) {
             console.error("AI Distillation failed:", error);
+            setError(error.message || "An unexpected error occurred.");
             setStatus("idle");
         }
     };
@@ -370,6 +373,11 @@ export default function WorkflowAssistant() {
                             <p className="text-xl font-black text-slate-700 uppercase italic tracking-tighter">Engine Idle</p>
                             <p className="text-[10px] text-slate-800 font-bold uppercase tracking-widest">Connect source files to activate distillation engine</p>
                         </div>
+                        {error && (
+                            <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+                                <p className="text-sm font-bold text-red-500">{error}</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
