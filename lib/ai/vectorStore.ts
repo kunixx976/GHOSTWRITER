@@ -17,6 +17,14 @@ const embeddings = new OpenAIEmbeddings({
 
 let vectorStore: MemoryVectorStore | null = null;
 
+import { Pinecone } from "@pinecone-database/pinecone";
+import { PineconeStore } from "@langchain/pinecone";
+export const getVectorStore = async () => {
+    const client = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
+    const index = client.index(process.env.PINECONE_INDEX!);
+    return PineconeStore.fromExistingIndex(embeddings, { pineconeIndex: index });
+};
+
 export const initializeVectorStore = async (chunks: Document[]) => {
     console.log(`Initializing MemoryVectorStore with ${chunks.length} chunks...`);
     vectorStore = await MemoryVectorStore.fromDocuments(chunks, embeddings);

@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-    LayoutDashboard, Target, BookOpen, Settings, ChevronLeft, ChevronRight,
-    Menu, Brain, Terminal, Workflow, Box, Database, Zap, Activity, Cpu,
-    StickyNote, Kanban, Calendar, FileText, CheckSquare, FolderKanban
+    LayoutDashboard, Target, BookOpen, Settings, ChevronLeft,
+    Menu, Brain, Terminal, Box, Database, Zap, Activity, Cpu,
+    StickyNote, Calendar, FileText, FolderKanban, Network,
+    Mic, Dna, FlaskConical, User, Users, Layers, CheckSquare, Workflow
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -18,6 +19,8 @@ export default function Sidebar() {
     const logs = [
         { agent: 'System', text: 'Neural entropy stabilization active.', color: 'text-blue-400' },
         { agent: 'Archivist', text: 'Awaiting source ingestion...', color: 'text-emerald-400' },
+        { agent: 'Pipeline', text: 'Lecture extraction ready.', color: 'text-rose-400' },
+        { agent: 'Ghost Squad', text: 'Alex K. updated Thermodynamics.', color: 'text-teal-400' },
     ];
 
     useEffect(() => {
@@ -31,40 +34,52 @@ export default function Sidebar() {
         {
             title: 'General',
             items: [
-                { name: 'Dashboard', icon: <LayoutDashboard size={20} />, href: '/dashboard', subLabel: 'Overview analytics', plan: 'free' },
-                { name: 'Landing', icon: <Box size={20} />, href: '/', subLabel: 'System landing page', plan: 'free' },
-                { name: 'Workflow Assistant', icon: <Brain size={20} />, href: '/workflow-assistant', subLabel: 'Study extraction engine', plan: 'pro' },
-                { name: 'Exam Predictor', icon: <Target size={20} />, href: '/predictor', subLabel: 'Probability analysis', plan: 'pro' },
+                { name: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/dashboard', subLabel: 'Overview analytics', plan: 'free' },
+                { name: 'Landing', icon: <Box size={18} />, href: '/', subLabel: 'System landing page', plan: 'free' },
+                { name: 'Workflow Assistant', icon: <Brain size={18} />, href: '/workflow-assistant', subLabel: 'Study extraction engine', plan: 'pro' },
+                { name: 'Exam Predictor', icon: <Target size={18} />, href: '/predictor', subLabel: 'Probability analysis', plan: 'pro' },
+            ]
+        },
+        {
+            title: '✦ New AI Features',
+            items: [
+                { name: 'Lecture Pipeline', icon: <Mic size={16} />, href: '/lecture', subLabel: 'Audio → study material in 60s', plan: 'pro' },
+                { name: 'Exam DNA', icon: <Dna size={16} />, href: '/exam-dna', subLabel: 'Past paper fingerprinting', plan: 'pro' },
+                { name: 'Smart Vault', icon: <Layers size={16} />, href: '/smart-vault', subLabel: 'Spaced repetition SM-2', plan: 'pro' },
+                { name: 'Knowledge Graph', icon: <Network size={16} />, href: '/knowledge-graph', subLabel: 'Visual dependency matrix', plan: 'pro' },
+                { name: 'Simulation Lab Pro', icon: <FlaskConical size={16} />, href: '/simulation-lab', subLabel: 'AI examiner & mark schemes', plan: 'pro' },
+                { name: 'Study Persona', icon: <User size={16} />, href: '/study-persona', subLabel: 'Cognitive profile engine', plan: 'free' },
+                { name: 'Ghost Squad', icon: <Users size={16} />, href: '/ghost-squad', subLabel: 'Collaborative study mode', plan: 'pro' },
             ]
         },
         {
             title: 'Productivity',
             items: [
-                { name: 'Quick Notes', icon: <StickyNote size={18} />, href: '/notes', subLabel: 'Capture ideas instantly', plan: 'free' },
-                { name: 'Task Board', icon: <FolderKanban size={18} />, href: '/tasks', subLabel: 'Kanban-style workflow', plan: 'free' },
-                { name: 'Calendar', icon: <Calendar size={18} />, href: '/calendar', subLabel: 'Schedule & deadlines', plan: 'free' },
-                { name: 'Templates', icon: <FileText size={18} />, href: '/templates', subLabel: 'Reusable study formats', plan: 'pro' },
-                { name: 'Logic Decompiler', icon: <Terminal size={18} />, href: '/decompiler', subLabel: 'Deconstruct system anatomy', plan: 'pro' },
+                { name: 'Quick Notes', icon: <StickyNote size={16} />, href: '/notes', subLabel: 'Capture ideas instantly', plan: 'free' },
+                { name: 'Task Board', icon: <FolderKanban size={16} />, href: '/tasks', subLabel: 'Kanban-style workflow', plan: 'free' },
+                { name: 'Calendar', icon: <Calendar size={16} />, href: '/calendar', subLabel: 'Schedule & deadlines', plan: 'free' },
+                { name: 'Templates', icon: <FileText size={16} />, href: '/templates', subLabel: 'Reusable study formats', plan: 'pro' },
+                { name: 'Logic Decompiler', icon: <Terminal size={16} />, href: '/decompiler', subLabel: 'Deconstruct system anatomy', plan: 'pro' },
             ]
         },
         {
             title: 'Organization',
             items: [
-                { name: 'The Atomic Vault', icon: <Box size={18} />, href: '/vault', subLabel: 'Modular knowledge blocks', plan: 'pro' },
-                { name: 'Dependency Matrix', icon: <Database size={18} />, href: '/matrix', subLabel: 'Map tech ecosystems', plan: 'pro' },
-                { name: 'Study Library', icon: <BookOpen size={20} />, href: '/library', subLabel: 'Resource collection', plan: 'free' },
+                { name: 'The Atomic Vault', icon: <Box size={16} />, href: '/vault', subLabel: 'Modular knowledge blocks', plan: 'pro' },
+                { name: 'Dependency Matrix', icon: <Database size={16} />, href: '/matrix', subLabel: 'Map tech ecosystems', plan: 'pro' },
+                { name: 'Study Library', icon: <BookOpen size={16} />, href: '/library', subLabel: 'Resource collection', plan: 'free' },
             ]
         },
         {
             title: 'Skill Building',
             items: [
-                { name: 'Simulation Lab', icon: <Zap size={18} />, href: '/lab', subLabel: 'Active recall & mocks', plan: 'pro' },
+                { name: 'Simulation Lab', icon: <Zap size={16} />, href: '/lab', subLabel: 'Active recall & mocks', plan: 'pro' },
             ]
         },
         {
             title: 'System',
             items: [
-                { name: 'Settings', icon: <Settings size={20} />, href: '/settings', subLabel: 'Configuration', plan: 'free' },
+                { name: 'Settings', icon: <Settings size={16} />, href: '/settings', subLabel: 'Configuration', plan: 'free' },
             ]
         }
     ];
@@ -101,11 +116,14 @@ export default function Sidebar() {
                 </button>
             </div>
 
-            <nav className="flex-1 px-4 space-y-6 overflow-y-auto custom-scrollbar pt-2 font-sans">
-                {sections.map((section) => (
-                    <div key={section.title} className="space-y-1">
+            <nav className="flex-1 px-4 space-y-4 overflow-y-auto custom-scrollbar pt-2 font-sans">
+                {sections.map((section) => {
+                    const isNewFeatures = section.title === '✦ New AI Features';
+                    return (
+                    <div key={section.title} className={`space-y-1 ${isNewFeatures && !isCollapsed ? 'bg-violet-500/[0.04] border border-violet-500/10 rounded-2xl p-2 pb-3' : ''}`}>
                         {!isCollapsed && (
-                            <div className="pt-2 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] font-display">
+                            <div className={`pt-2 pb-2 px-4 text-[10px] font-black uppercase tracking-[0.2em] font-display flex items-center gap-2 ${isNewFeatures ? 'text-violet-400' : 'text-slate-500'}`}>
+                                {isNewFeatures && <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />}
                                 {section.title}
                             </div>
                         )}
@@ -174,7 +192,8 @@ export default function Sidebar() {
                             })}
                         </div>
                     </div>
-                ))}
+                    );
+                })}
             </nav>
 
             <div className="p-4 border-t border-white/10">

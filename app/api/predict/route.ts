@@ -5,33 +5,38 @@ import { initializeVectorStore } from "@/lib/ai/vectorStore";
 import { getRelevantContext } from "@/lib/ai/retrieval";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
-export const maxDuration = 60; // Allow up to 60s for Vercel Hobby tier
+export const maxDuration = 120;
 
-const openai = new OpenAI({ 
+const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY || "",
     baseURL: process.env.OPENAI_BASE_URL || undefined,
 });
 
-/* ─── Helper: ingest a single file into the vector store ─── */
 async function ingestFile(file: File): Promise<string> {
     if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
         const chunks = await processPDF(file);
         await initializeVectorStore(chunks);
-        return await getRelevantContext("mathematical formulas, core concepts, and exam-style questions", 12);
+        return await getRelevantContext(
+            "mathematical formulas, core concepts, key definitions, theorems, exam-style questions, derivations, and important topics",
+            20
+        );
     } else {
         const bytes = await file.arrayBuffer();
         const text = Buffer.from(bytes).toString("utf-8");
-        const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
+        const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1200, chunkOverlap: 300 });
         const chunks = await splitter.createDocuments([text]);
         await initializeVectorStore(chunks);
-        return await getRelevantContext("core themes, key details, and exam topics", 10);
+        return await getRelevantContext(
+            "core themes, key definitions, formulas, theorems, concepts, and exam topics",
+            18
+        );
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
         if (!process.env.OPENAI_API_KEY) {
-            throw new Error("Missing OpenAI API Key. Please check your .env file.");
+            throw new Error("Missing OpenAI API Key.");
         }
 
         const formData = await req.formData().catch((err) => {
@@ -41,14 +46,9 @@ export async function POST(req: NextRequest) {
         const file = formData.get("file") as File | null;
         if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
 
-        // Collect all files: primary + any extras
-        const allFiles: File[] = [file];
-        const extras = formData.getAll("extraFiles") as File[];
-        allFiles.push(...extras);
-
+        const allFiles: File[] = [file, ...(formData.getAll("extraFiles") as File[])];
         console.log(`Processing ${allFiles.length} file(s):`, allFiles.map((f) => f.name).join(", "));
 
-        // Ingest all files and concatenate context
         let combinedContext = "";
         for (const f of allFiles) {
             const ctx = await ingestFile(f);
@@ -56,104 +56,176 @@ export async function POST(req: NextRequest) {
         }
 
         if (!combinedContext.trim()) {
-            throw new Error("Could not extract enough context from your file(s). They may be empty or encrypted.");
+            throw new Error("Could not extract enough context from your file(s).");
         }
 
-        console.log(`Combined context: ${combinedContext.length} chars from ${allFiles.length} file(s)`);
+        const systemPrompt = `You are GHOSTWRITER — an expert academic analyst and exam prediction engine.
+You analyze course material with surgical precision, identifying high-probability exam topics based on:
+- Frequency of concept repetition in the material
+- Complexity and derivation depth (harder concepts = more exam marks)
+- Cross-topic dependencies
+- Standard university exam weightage patterns
+You are direct, specific, and never use placeholder text. Every output references actual content from the provided material.`;
 
-        const prompt = `
-You are an expert exam prediction engine and academic analyst. Analyze the provided course material and return ONLY a valid JSON object.
+        const materialSnippet = combinedContext.slice(0, 28000);
 
-JSON structure (return ALL fields):
+        // ── Call 1: Structured JSON analysis ──
+        const structurePromise = openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: systemPrompt },
+                {
+                    role: "user", content: `Analyze this academic material and return ONLY valid JSON with no markdown fences.
+
+Return this exact structure:
 {
-  "subject": "detected subject name (e.g. 'Database Management Systems')",
-  "analysis_summary": "2-3 sentence overview of the materials",
-  "exam_pattern": "description of detected exam pattern (e.g. '3 long answer + 5 short answer + 10 MCQs')",
-  "predicted_questions": "question_text|topic|probability_percent(40-99)|reason|difficulty(Easy/Medium/Hard)|type(MCQ/Short Answer/Long Answer/Numerical/Diagram-based)|confidence|recurrence(Low/Medium/High/Critical)|historical_frequency(1-10)|recommended_study_hours",
-  "hot_topics": "topic1|topic2|topic3|topic4|topic5|topic6",
-  "study_tips": "tip1|tip2|tip3|tip4|tip5",
-  "pyp_insights": "insight1|insight2|insight3",
-  "technicalMatrix": "concept|difficulty(Easy/Medium/Hard/Expert)|priority(Review/Important/Must Study/Critical)|probability_percent|risk_if_skipped(Low/Medium/High)",
-  "mermaidChart": "a valid Mermaid.js 'graph TD' string showing topic dependencies",
-  "gapAnalysis": "gap_description|risk_level(Low/Medium/High/Critical)|bridge_action|type(lesson/mock/practice)",
-  "distillation": "# Academic Intelligence Report\\n\\n### 1. Executive Summary\\n[2-3 sentences]\\n\\n---\\n\\n### 2. High-Probability Focus Areas\\n| Area / Topic | Exam Prob. % | Expert Rationale |\\n| :--- | :---: | :--- |\\n| [Topic] | [%] | [Rationale] |\\n\\n---\\n\\n### 3. Priority Study Sequence\\n1. **[Topic]** ([Hours]h) - [Focus area].\\n\\n---\\n\\n### 4. Critical Patterns to Memorize\\n- **[Concept]**: $$ [LaTeX if applicable] $$"
+  "subject": "detected subject name",
+  "analysis_summary": "4-5 sentences specific to this material",
+  "exam_pattern": "detected exam pattern description",
+  "confidence_score": <number 0-100>,
+  "predicted_questions": [
+    {
+      "question": "Full question text as it would appear in an exam",
+      "topic": "specific topic from material",
+      "probability": <number 40-99>,
+      "difficulty": "Easy|Medium|Hard",
+      "type": "MCQ|Short Answer|Long Answer|Numerical|Diagram-based",
+      "marks": <number>,
+      "reason": "1-2 sentences explaining why this is likely to appear",
+      "study_hours": <number>,
+      "recurrence": "Low|Medium|High|Critical"
+    }
+  ],
+  "hot_topics": [
+    { "topic": "string", "weight": <number>, "reason": "string" }
+  ],
+  "technical_matrix": [
+    {
+      "concept": "string",
+      "difficulty": "Easy|Medium|Hard|Expert",
+      "priority": "Review|Important|Must Study|Critical",
+      "probability": <number>,
+      "risk_if_skipped": "Low|Medium|High"
+    }
+  ],
+  "gap_analysis": [
+    {
+      "gap": "string",
+      "risk": "Low|Medium|High|Critical",
+      "action": "string",
+      "type": "lesson|mock|practice"
+    }
+  ],
+  "mermaid_chart": "graph TD\\n  A[Topic] --> B[Subtopic]",
+  "pyp_insights": ["string", "string", "string", "string"],
+  "study_tips": ["string", "string", "string", "string", "string"]
 }
 
 Rules:
-- probability must be 40-99 for predicted_questions
-- Generate 8-12 predicted_questions sorted by probability descending
-- Generate 6 hot_topics sorted by importance
-- Generate 5 study_tips focused specifically on high-yield strategies derived from analyzing previous year patterns.
-- Generate 3-4 pyp_insights (Previous Year Paper insights) focusing on how questions have evolved or recurring traps.
-- Use pipe '|' as delimiter for CSV rows; newline to separate rows
-- Be specific to the actual subject content, not generic
-- Do NOT include CSV headers
+- Exactly 6 predicted_questions sorted by probability descending
+- Exactly 4 hot_topics sorted by weight descending
+- Exactly 4 technical_matrix entries
+- 2-3 gap_analysis entries
+- mermaid_chart must have up to 6 nodes
+- All content must reference actual topics from the material
 
 Course Material:
-"${combinedContext.slice(0, 14000)}"
-`;
-
-        const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: prompt }],
+${materialSnippet}`
+                },
+            ],
             response_format: { type: "json_object" },
-            max_tokens: 4096,
+            max_tokens: 1716,
         });
 
-        const rawContent = response.choices[0].message.content;
-        if (!rawContent) throw new Error("No content generated by OpenAI");
+        // We extract the subject during the structure parsing, so we cannot inject it directly into the second prompt ahead of time.
+        // I will change the second prompt to just use a generic 'the uploaded document' as subject.
 
-        const data = JSON.parse(rawContent);
+        // ── Call 2: Deep distillation report ──
+        const distillationPromise = openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: systemPrompt },
+                {
+                    role: "user", content: `Write a complete Academic Intelligence Report for the uploaded document. 
+Be exhaustive — no placeholders, no abbreviations. A student's exam grade depends on this.
 
-        /* ─── CSV parsers ─── */
-        const parseCSV = (csv: string, keys: string[]) => {
-            if (!csv) return [];
-            return csv
-                .split("\n")
-                .filter((line) => line.trim())
-                .map((line) => {
-                    const values = line.split("|");
-                    const obj: Record<string, any> = {};
-                    keys.forEach((key, i) => {
-                        const val = values[i]?.trim() || "";
-                        if (["confidence", "prob", "frequency", "studyHours", "probability"].includes(key)) {
-                            obj[key] = parseFloat(val) || 0;
-                        } else {
-                            obj[key] = val;
-                        }
-                    });
-                    return obj;
-                });
-        };
+# Academic Intelligence Report
 
-        const parsePipeSplit = (str: string): string[] => {
-            if (!str) return [];
-            // Support both pipe-separated and newline-separated arrays
-            return str.split(/\||\n/).map((s) => s.trim()).filter(Boolean);
-        };
+## 1. Executive Summary
+Write 4-5 sentences covering what the subject is, its scope, exam relevance, and top priority areas.
 
+## 2. High-Probability Focus Areas
+| Topic | Exam Probability | Rationale |
+|-------|-----------------|-----------|
+Write 8-10 rows with SPECIFIC topics from the material.
+
+## 3. Priority Study Sequence
+List 8 topics in study order. Format: **1. Topic Name** (Xh) — what to focus on and why.
+
+## 4. Critical Formulas & Concepts to Memorize
+List every key formula, theorem, and definition. Use $$ LaTeX $$ for math. Minimum 8 items.
+Format: **Concept Name**: explanation or formula.
+
+## 5. Topic Deep Dives
+For each major topic: 3-4 sentences on the concept, common exam angles, and typical student mistakes.
+
+## 6. Exam Strategy
+5 specific, actionable tips for THIS subject. Not generic advice.
+
+## 7. Last 48 Hours Checklist
+A prioritized checklist of exactly what to review before the exam.
+
+Course Material:
+${materialSnippet}`
+                },
+            ],
+            max_tokens: 1716,
+        });
+
+        // Wait for both promises simultaneously for an advanced, faster workflow response
+        const [structureResponse, distillationResponse] = await Promise.all([
+            structurePromise,
+            distillationPromise,
+        ]);
+
+        const rawStructure = structureResponse.choices[0].message.content;
+        if (!rawStructure) throw new Error("No structured analysis returned");
+
+        let structuredData: any;
+        try {
+            structuredData = JSON.parse(rawStructure);
+        } catch {
+            throw new Error("Structured analysis returned invalid JSON");
+        }
+
+        const distillation = distillationResponse.choices[0].message.content || "";
+
+        const subject = structuredData.subject || allFiles[0]?.name?.replace(/\.[^/.]+$/, "") || "Analyzed Subject";
+
+        // ── Assemble final response ──
         const finalized = {
-            subject: data.subject || allFiles[0]?.name?.replace(/\.[^/.]+$/, "") || "Analyzed Subject",
-            analysis_summary: data.analysis_summary || "",
-            exam_pattern: data.exam_pattern || "",
-            predicted_questions: parseCSV(data.predicted_questions, [
-                "question", "topic", "probability", "reason", "difficulty", "type",
-                "confidence", "recurrence", "frequency", "studyHours"
-            ]),
-            hot_topics: parsePipeSplit(data.hot_topics),
-            study_tips: parsePipeSplit(data.study_tips),
-            pyp_insights: parsePipeSplit(data.pyp_insights),
-            technicalMatrix: parseCSV(data.technicalMatrix, ["concept", "difficulty", "priority", "prob", "riskLevel"]),
-            mermaidChart: data.mermaidChart || "",
-            gapAnalysis: parseCSV(data.gapAnalysis, ["gap", "riskLevel", "bridgeAction", "type"]),
-            distillation: data.distillation || "",
+            subject,
+            analysis_summary: structuredData.analysis_summary || "",
+            exam_pattern: structuredData.exam_pattern || "",
+            confidence_score: structuredData.confidence_score || 0,
+            predicted_questions: structuredData.predicted_questions || [],
+            hot_topics: structuredData.hot_topics || [],
+            technical_matrix: structuredData.technical_matrix || [],
+            gap_analysis: structuredData.gap_analysis || [],
+            mermaid_chart: structuredData.mermaid_chart || "",
+            pyp_insights: structuredData.pyp_insights || [],
+            study_tips: structuredData.study_tips || [],
+            distillation,
+            // backward compat alias
+            predictions: structuredData.predicted_questions || [],
+            technicalMatrix: structuredData.technical_matrix || [],
+            mermaidChart: structuredData.mermaid_chart || "",
+            gapAnalysis: structuredData.gap_analysis || [],
         };
 
-        // Alias predictions for backward compat
-        (finalized as any).predictions = finalized.predicted_questions;
-
-        console.log("Prediction finalized successfully");
+        console.log("Analysis complete:", subject);
         return NextResponse.json(finalized);
+
     } catch (error: any) {
         console.error("PREDICTION ENGINE FAILURE:", error.message);
         return NextResponse.json(
