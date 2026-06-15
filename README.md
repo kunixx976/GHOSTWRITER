@@ -1,8 +1,8 @@
 # 👻 Academic Ghostwriter
 
-**High-Fidelity Study Extraction Engine // v4.0.2 Protocol**
+**High-Fidelity Study Extraction Engine**
 
-Academic Ghostwriter is a premium, AI-native intelligence platform designed to deconstruct lecture noise, dense PDFs, and complex presentations into structural clarity. Built with a multimodal agentic core (Gemini 2.0 Flash & GPT-4o), it provides near-instant synthesis with a high-end, cinematic user experience and a brutalist-glass aesthetic.
+Academic Ghostwriter is a premium, AI intelligence platform designed to deconstruct lecture noise, dense PDFs, and complex presentations into structural clarity. Built with a multimodal agentic core (Gemini 2.0 Flash & GPT-4o), it provides near-instant synthesis with a high-end, cinematic user experience and a brutalist-glass aesthetic.
 
 ---
 
