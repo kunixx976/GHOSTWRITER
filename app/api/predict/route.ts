@@ -8,58 +8,58 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 export const maxDuration = 120;
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || "",
-    baseURL: process.env.OPENAI_BASE_URL || undefined,
+ apiKey: process.env.OPENAI_API_KEY || "",
+ baseURL: process.env.OPENAI_BASE_URL || undefined,
 });
 
 async function ingestFile(file: File): Promise<string> {
-    if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-        const chunks = await processPDF(file);
-        await initializeVectorStore(chunks);
-        return await getRelevantContext(
-            "mathematical formulas, core concepts, key definitions, theorems, exam-style questions, derivations, and important topics",
-            20
-        );
-    } else {
-        const bytes = await file.arrayBuffer();
-        const text = Buffer.from(bytes).toString("utf-8");
-        const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1200, chunkOverlap: 300 });
-        const chunks = await splitter.createDocuments([text]);
-        await initializeVectorStore(chunks);
-        return await getRelevantContext(
-            "core themes, key definitions, formulas, theorems, concepts, and exam topics",
-            18
-        );
-    }
+ if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+ const chunks = await processPDF(file);
+ await initializeVectorStore(chunks);
+ return await getRelevantContext(
+ "mathematical formulas, core concepts, key definitions, theorems, exam-style questions, derivations, and important topics",
+ 20
+ );
+ } else {
+ const bytes = await file.arrayBuffer();
+ const text = Buffer.from(bytes).toString("utf-8");
+ const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1200, chunkOverlap: 300 });
+ const chunks = await splitter.createDocuments([text]);
+ await initializeVectorStore(chunks);
+ return await getRelevantContext(
+ "core themes, key definitions, formulas, theorems, concepts, and exam topics",
+ 18
+ );
+ }
 }
 
 export async function POST(req: NextRequest) {
-    try {
-        if (!process.env.OPENAI_API_KEY) {
-            throw new Error("Missing OpenAI API Key.");
-        }
+ try {
+ if (!process.env.OPENAI_API_KEY) {
+ throw new Error("Missing OpenAI API Key.");
+ }
 
-        const formData = await req.formData().catch((err) => {
-            throw new Error(`FormData Parse Failed: ${err.message}`);
-        });
+ const formData = await req.formData().catch((err) => {
+ throw new Error(`FormData Parse Failed: ${err.message}`);
+ });
 
-        const file = formData.get("file") as File | null;
-        if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
+ const file = formData.get("file") as File | null;
+ if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
 
-        const allFiles: File[] = [file, ...(formData.getAll("extraFiles") as File[])];
-        console.log(`Processing ${allFiles.length} file(s):`, allFiles.map((f) => f.name).join(", "));
+ const allFiles: File[] = [file, ...(formData.getAll("extraFiles") as File[])];
+ console.log(`Processing ${allFiles.length} file(s):`, allFiles.map((f) => f.name).join(", "));
 
-        let combinedContext = "";
-        for (const f of allFiles) {
-            const ctx = await ingestFile(f);
-            combinedContext += `\n\n=== SOURCE: ${f.name} ===\n${ctx}`;
-        }
+ let combinedContext = "";
+ for (const f of allFiles) {
+ const ctx = await ingestFile(f);
+ combinedContext += `\n\n=== SOURCE: ${f.name} ===\n${ctx}`;
+ }
 
-        if (!combinedContext.trim()) {
-            throw new Error("Could not extract enough context from your file(s).");
-        }
+ if (!combinedContext.trim()) {
+ throw new Error("Could not extract enough context from your file(s).");
+ }
 
-        const systemPrompt = `You are GHOSTWRITER — an expert academic analyst and exam prediction engine.
+ const systemPrompt = `You are GHOSTWRITER — an expert academic analyst and exam prediction engine.
 You analyze course material with surgical precision, identifying high-probability exam topics based on:
 - Frequency of concept repetition in the material
 - Complexity and derivation depth (harder concepts = more exam marks)
@@ -67,58 +67,58 @@ You analyze course material with surgical precision, identifying high-probabilit
 - Standard university exam weightage patterns
 You are direct, specific, and never use placeholder text. Every output references actual content from the provided material.`;
 
-        const materialSnippet = combinedContext.slice(0, 28000);
+ const materialSnippet = combinedContext.slice(0, 28000);
 
-        // ── Call 1: Structured JSON analysis ──
-        const structurePromise = openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-                { role: "system", content: systemPrompt },
-                {
-                    role: "user", content: `Analyze this academic material and return ONLY valid JSON with no markdown fences.
+ // ── Call 1: Structured JSON analysis ──
+ const structurePromise = openai.chat.completions.create({
+ model: "gpt-4o-mini",
+ messages: [
+ { role: "system", content: systemPrompt },
+ {
+ role: "user", content: `Analyze this academic material and return ONLY valid JSON with no markdown fences.
 
 Return this exact structure:
 {
-  "subject": "detected subject name",
-  "analysis_summary": "4-5 sentences specific to this material",
-  "exam_pattern": "detected exam pattern description",
-  "confidence_score": <number 0-100>,
-  "predicted_questions": [
-    {
-      "question": "Full question text as it would appear in an exam",
-      "topic": "specific topic from material",
-      "probability": <number 40-99>,
-      "difficulty": "Easy|Medium|Hard",
-      "type": "MCQ|Short Answer|Long Answer|Numerical|Diagram-based",
-      "marks": <number>,
-      "reason": "1-2 sentences explaining why this is likely to appear",
-      "study_hours": <number>,
-      "recurrence": "Low|Medium|High|Critical"
-    }
-  ],
-  "hot_topics": [
-    { "topic": "string", "weight": <number>, "reason": "string" }
-  ],
-  "technical_matrix": [
-    {
-      "concept": "string",
-      "difficulty": "Easy|Medium|Hard|Expert",
-      "priority": "Review|Important|Must Study|Critical",
-      "probability": <number>,
-      "risk_if_skipped": "Low|Medium|High"
-    }
-  ],
-  "gap_analysis": [
-    {
-      "gap": "string",
-      "risk": "Low|Medium|High|Critical",
-      "action": "string",
-      "type": "lesson|mock|practice"
-    }
-  ],
-  "mermaid_chart": "graph TD\\n  A[Topic] --> B[Subtopic]",
-  "pyp_insights": ["string", "string", "string", "string"],
-  "study_tips": ["string", "string", "string", "string", "string"]
+ "subject": "detected subject name",
+ "analysis_summary": "4-5 sentences specific to this material",
+ "exam_pattern": "detected exam pattern description",
+ "confidence_score": <number 0-100>,
+ "predicted_questions": [
+ {
+ "question": "Full question text as it would appear in an exam",
+ "topic": "specific topic from material",
+ "probability": <number 40-99>,
+ "difficulty": "Easy|Medium|Hard",
+ "type": "MCQ|Short Answer|Long Answer|Numerical|Diagram-based",
+ "marks": <number>,
+ "reason": "1-2 sentences explaining why this is likely to appear",
+ "study_hours": <number>,
+ "recurrence": "Low|Medium|High|Critical"
+ }
+ ],
+ "hot_topics": [
+ { "topic": "string", "weight": <number>, "reason": "string" }
+ ],
+ "technical_matrix": [
+ {
+ "concept": "string",
+ "difficulty": "Easy|Medium|Hard|Expert",
+ "priority": "Review|Important|Must Study|Critical",
+ "probability": <number>,
+ "risk_if_skipped": "Low|Medium|High"
+ }
+ ],
+ "gap_analysis": [
+ {
+ "gap": "string",
+ "risk": "Low|Medium|High|Critical",
+ "action": "string",
+ "type": "lesson|mock|practice"
+ }
+ ],
+ "mermaid_chart": "graph TD\\n A[Topic] --> B[Subtopic]",
+ "pyp_insights": ["string", "string", "string", "string"],
+ "study_tips": ["string", "string", "string", "string", "string"]
 }
 
 Rules:
@@ -131,22 +131,22 @@ Rules:
 
 Course Material:
 ${materialSnippet}`
-                },
-            ],
-            response_format: { type: "json_object" },
-            max_tokens: 8000,
-        });
+ },
+ ],
+ response_format: { type: "json_object" },
+ max_tokens: 8000,
+ });
 
-        // We extract the subject during the structure parsing, so we cannot inject it directly into the second prompt ahead of time.
-        // I will change the second prompt to just use a generic 'the uploaded document' as subject.
+ // We extract the subject during the structure parsing, so we cannot inject it directly into the second prompt ahead of time.
+ // I will change the second prompt to just use a generic 'the uploaded document' as subject.
 
-        // ── Call 2: Deep distillation report ──
-        const distillationPromise = openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-                { role: "system", content: systemPrompt },
-                {
-                    role: "user", content: `Write a complete Academic Intelligence Report for the uploaded document. 
+ // ── Call 2: Deep distillation report ──
+ const distillationPromise = openai.chat.completions.create({
+ model: "gpt-4o-mini",
+ messages: [
+ { role: "system", content: systemPrompt },
+ {
+ role: "user", content: `Write a complete Academic Intelligence Report for the uploaded document. 
 Be exhaustive — no placeholders, no abbreviations. A student's exam grade depends on this.
 
 # Academic Intelligence Report
@@ -177,62 +177,62 @@ A prioritized checklist of exactly what to review before the exam.
 
 Course Material:
 ${materialSnippet}`
-                },
-            ],
-            max_tokens: 8000,
-        });
+ },
+ ],
+ max_tokens: 8000,
+ });
 
-        // Wait for both promises simultaneously for an advanced, faster workflow response
-        const [structureResponse, distillationResponse] = await Promise.all([
-            structurePromise,
-            distillationPromise,
-        ]);
+ // Wait for both promises simultaneously for an advanced, faster workflow response
+ const [structureResponse, distillationResponse] = await Promise.all([
+ structurePromise,
+ distillationPromise,
+ ]);
 
-        const rawStructure = structureResponse.choices[0].message.content;
-        if (!rawStructure) throw new Error("No structured analysis returned");
+ const rawStructure = structureResponse.choices[0].message.content;
+ if (!rawStructure) throw new Error("No structured analysis returned");
 
-        let structuredData: any;
-        try {
-            const cleanedStructure = rawStructure.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
-            structuredData = JSON.parse(cleanedStructure);
-        } catch (err) {
-            console.error("Failed to parse JSON. Raw structure was:", rawStructure);
-            throw new Error("Structured analysis returned invalid JSON");
-        }
+ let structuredData: any;
+ try {
+ const cleanedStructure = rawStructure.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
+ structuredData = JSON.parse(cleanedStructure);
+ } catch (err) {
+ console.error("Failed to parse JSON. Raw structure was:", rawStructure);
+ throw new Error("Structured analysis returned invalid JSON");
+ }
 
-        const distillation = distillationResponse.choices[0].message.content || "";
+ const distillation = distillationResponse.choices[0].message.content || "";
 
-        const subject = structuredData.subject || allFiles[0]?.name?.replace(/\.[^/.]+$/, "") || "Analyzed Subject";
+ const subject = structuredData.subject || allFiles[0]?.name?.replace(/\.[^/.]+$/, "") || "Analyzed Subject";
 
-        // ── Assemble final response ──
-        const finalized = {
-            subject,
-            analysis_summary: structuredData.analysis_summary || "",
-            exam_pattern: structuredData.exam_pattern || "",
-            confidence_score: structuredData.confidence_score || 0,
-            predicted_questions: structuredData.predicted_questions || [],
-            hot_topics: structuredData.hot_topics || [],
-            technical_matrix: structuredData.technical_matrix || [],
-            gap_analysis: structuredData.gap_analysis || [],
-            mermaid_chart: structuredData.mermaid_chart || "",
-            pyp_insights: structuredData.pyp_insights || [],
-            study_tips: structuredData.study_tips || [],
-            distillation,
-            // backward compat alias
-            predictions: structuredData.predicted_questions || [],
-            technicalMatrix: structuredData.technical_matrix || [],
-            mermaidChart: structuredData.mermaid_chart || "",
-            gapAnalysis: structuredData.gap_analysis || [],
-        };
+ // ── Assemble final response ──
+ const finalized = {
+ subject,
+ analysis_summary: structuredData.analysis_summary || "",
+ exam_pattern: structuredData.exam_pattern || "",
+ confidence_score: structuredData.confidence_score || 0,
+ predicted_questions: structuredData.predicted_questions || [],
+ hot_topics: structuredData.hot_topics || [],
+ technical_matrix: structuredData.technical_matrix || [],
+ gap_analysis: structuredData.gap_analysis || [],
+ mermaid_chart: structuredData.mermaid_chart || "",
+ pyp_insights: structuredData.pyp_insights || [],
+ study_tips: structuredData.study_tips || [],
+ distillation,
+ // backward compat alias
+ predictions: structuredData.predicted_questions || [],
+ technicalMatrix: structuredData.technical_matrix || [],
+ mermaidChart: structuredData.mermaid_chart || "",
+ gapAnalysis: structuredData.gap_analysis || [],
+ };
 
-        console.log("Analysis complete:", subject);
-        return NextResponse.json(finalized);
+ console.log("Analysis complete:", subject);
+ return NextResponse.json(finalized);
 
-    } catch (error: any) {
-        console.error("PREDICTION ENGINE FAILURE:", error.message);
-        return NextResponse.json(
-            { error: error.message || "Internal Analysis Engine Error", details: error.stack },
-            { status: 500 }
-        );
-    }
+ } catch (error: any) {
+ console.error("PREDICTION ENGINE FAILURE:", error.message);
+ return NextResponse.json(
+ { error: error.message || "Internal Analysis Engine Error", details: error.stack },
+ { status: 500 }
+ );
+ }
 }

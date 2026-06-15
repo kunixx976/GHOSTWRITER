@@ -13,13 +13,13 @@ Academic Ghostwriter is a premium, AI-native intelligence platform designed to d
 - **📊 Logic Decompiler**: Automatically decompile technical complexity into visual Mermaid.js diagrams and atomic knowledge fragments.
 - **🎯 Exam Predictor**: Integrated probability analysis to extract high-probability patterns and calculate exam likelihood from source material.
 - **📅 Productivity Suite**: A complete Notion-inspired academic workspace:
-  - **Quick Notes**: Capture research and lecture snapshots instantly.
+  - **The Atomic Vault**: A modular repository combining verified knowledge blocks and Quick Notes for rapid capture.
   - **Task Board**: Manage your study workflow with a tactile Kanban interface.
   - **Calendar**: Synchronize your academic schedule with intelligent deadline tracking.
   - **Study Plan**: Generate automated, exam-focused preparation timelines.
 - **🎓 Interactive Learning**:
-  - **Smart Flashcards**: Rapid revision via auto-generated interactive study cards.
-  - **Quick Lessons**: Deep-dive into complex topics like "Distributed State Management" with AI-guided modules.
+  - **Simulation Lab & Smart Flashcards**: AI examiner, mocks, mark schemes, and rapid revision via auto-generated study cards.
+  - **Visual Mapping**: Interactive Dependency Matrix and Knowledge Graph combined.
 - **💎 Ultra-Premium Design**:
   - Kinetic Bento-grid layouts and cinematic Three.js Nebula scenes.
   - Glassmorphic components with real-time backdrop blurs and particle trails.
@@ -72,9 +72,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `app/workflow-assistant/`: Custom study extraction and synthesis engine.
 - `app/predictor/`: AI-powered exam probability and pattern analysis.
 - `app/decompiler/`: Logic deconstruction and Mermaid diagram generation.
+- `app/knowledge-graph/`: Visual mapping combining dependency matrices and knowledge graphs.
+- `app/vault/`: The Atomic Vault, combining modular blocks and quick notes.
 - `app/dashboard/`: Centralized control hub for academic metrics and agents.
 - `app/tasks/`: Notion-like task board for workflow management.
-- `app/notes/`: Quick research and capture module.
+- `app/simulation-lab/`: AI examiner, mock interviews, and mark schemes.
 - `app/study-plan/`: Automated preparation timeline generator.
 - `src/components/`: Modular UI units (Three.js scenes, Bento cards, System Status matrix).
 
